@@ -1,113 +1,127 @@
-# Sentinel Image Downloader
+# Satellite Image Processing and Classification Pipeline
 
-This Python script allows you to download Sentinel-1, Sentinel-2, and ESA WorldCover images from Google Earth Engine (GEE) using a user-provided shapefile (in this case, Alamdeh.shp) as the area of interest (AOI). The downloaded images can be saved either directly to the local machine or to Google Drive as GeoTIFF files.
+## Table of Contents
 
-## Requirements
-Before running this script, make sure the following dependencies are installed:
-
-- **Google Earth Engine (GEE) API:** Required to access Earth Engine data.
-- **geemap:** A library that facilitates working with Earth Engine and downloading images.
-- **geopandas:** A library for working with shapefiles.
-- **ee (Earth Engine):** Python bindings for Google Earth Engine.
-
-You can install the necessary libraries using the following commands:
-```bash
-pip install earthengine-api geemap geopandas
-```
-Additionally, you need to authenticate with Google Earth Engine:
-```bash
-earthengine authenticate
-```
-This will guide you through the process of authenticating with your Google account.
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [1. Image Downloading](#1-image-downloading)
+  - [2. Raster Classification](#2-raster-classification)
+  - [3. Image Classification](#3-image-classification)
+  - [4. Running the Pipeline](#4-running-the-pipeline)
+- [Dependencies](#dependencies)
+- [Project Structure](#project-structure)
+- [Acknowledgements](#acknowledgements)
 
 ## Overview
-This script is designed to:
-1. Load the shapefile (for AOI) using GeoPandas.
-2. Retrieve Sentinel-1 (SAR) and Sentinel-2 (Optical) images for the specified time range and area of interest.
-3. Download these images in GeoTIFF format to your local storage or Google Drive.
 
-## Supported Data:
-- **Sentinel-1:** GRD (Ground Range Detected) images for SAR (VV and VH polarizations).
-- **Sentinel-2:** Optical imagery (Bands: B4 - Red, B3 - Green, B2 - Blue).
-- **ESA WorldCover:** Two versions of ESA WorldCover data (v100 and v200).
+This project provides a comprehensive pipeline for downloading, processing, and classifying satellite imagery using Google Earth Engine (GEE) and machine learning techniques. It leverages Sentinel-2 datasets to perform geospatial analysis and classification, enabling users to obtain classified raster outputs based on specified regions and timeframes.
 
-## How to Use
-### 1. Set Up Your Parameters
-In the script, modify the following parameters to suit your needs:
+## Features
 
-- **shapefile_path:** Path to the shapefile (e.g., ```Alamdeh.shp```) that defines the area of interest (AOI).
-- **start_date and end_date:** The time period for which you want to download images. Format: ```YYYY-MM-DD```.
-- **output_folder:** Path where the images will be saved (e.g., ```/GEE``` or Google Drive folder).
+- **Automated Image Downloading**: Fetch Sentinel-2 images for a specified region and date range.
+- **Cloud Masking**: Apply cloud masking to Sentinel-2 images to enhance data quality.
+- **Raster Classification**: Convert ground truth raster data into classified GeoTIFFs with customizable color maps.
+- **Machine Learning Classification**: Utilize a k-Nearest Neighbors (k-NN) classifier to classify satellite images based on training data.
+- **Visualization**: Generate and display classified images in both label and RGB formats.
+- **Modular Design**: Organized into separate scripts for downloading, processing, and classification for ease of maintenance and scalability.
 
-**Example:**
-```python
-shapefile_path = "/ArcGIS/Alamdeh.shp"
-start_date = "2020-01-01"
-end_date = "2020-01-02"
-output_folder = "/Sentinel_Images" 
-```
+## Architecture
 
-### 2. Run the Script
-Once the parameters are set, run the script using the command:
+The pipeline consists of the following main components:
+
+1. **Image Downloader (`image_downloader.py`)**: Handles authentication with Google Earth Engine, downloads Sentinel-1 and Sentinel-2 images based on user-defined parameters, and saves them locally.
+
+2. **Raster Classifier (`classify_raster.py`)**: Processes ground truth raster data, applies masking based on shapefiles, and generates classified GeoTIFFs with applied color maps.
+
+3. **Image Classifier (`classification.py`)**: Implements a k-NN classifier to train on the classified data and perform classification on satellite images. It also includes evaluation metrics and visualization tools.
+
+4. **Main Pipeline (`main.py`)**: Orchestrates the entire workflow by invoking the downloader, raster classifier, and image classifier in sequence.
+
+## Installation
+
+### Prerequisites
+
+- **Python 3.7 or higher**
+- **Google Earth Engine Account**: [Sign up here](https://earthengine.google.com/signup/)
+- **Earth Engine CLI**: Install using `pip install earthengine-api`
+
+
+## Usage
+### 1. **Image Downloading**
+The ```image_downloader.py``` script is responsible for downloading Sentinel-2 images based on the specified shapefile, date range, and output directory.
+
+### 2. **Raster Classification**
+The ```classify_raster.py``` script processes ground truth raster data by applying masks based on shapefiles and generating classified GeoTIFFs with a predefined color map.
+
+### 3. **Image Classification**
+The ```classification.py``` script trains a k-NN classifier using the classified raster data and applies it to satellite images to produce classified outputs. It also evaluates the classifier's performance and visualizes the results.
+
+### 4. **Running the Pipeline**
+The ```main.py``` script orchestrates the entire workflow. Ensure that all required parameters are correctly set within the script before execution.
+
+**Example Execution**
 ```bash
-python SentinelImageDownloader.py
+python main.py
 ```
-This will initiate the image download process for the specified Sentinel-1, Sentinel-2, and ESA WorldCover data.
+Upon running, the script will:
+1. Classify the ground truth raster data.
+2. Download Sentinel-2 images for the specified region and date range.
+3. Initialize the image classifier, resample the classified image, and convert RGB to class labels.
+4. Load satellite bands, prepare the dataset, and split it into training and testing sets.
+5. Train the k-NN classifier and evaluate its performance.
+6. Classify the entire satellite image and save both label and RGB classified outputs.
+7. Display the classified RGB image.
 
-### 3. Image Export
+## Dependencies
+The project relies on the following Python libraries:
 
-- **Download to Local Storage:** By default, the images will be downloaded to your specified local folder (e.g., ```/Sentinel_Images```).
-- **Download to Google Drive:** The script also supports exporting images to Google Drive by using Earth Engine's ```Export.image.toDrive``` function.
+- **earthengine-api:** Interface with Google Earth Engine.
+- **geemap:** Interactive mapping with Google Earth Engine.
+- **geopandas:** Geospatial data manipulation.
+- **rasterio:** Raster data access and processing.
+- **matplotlib:** Plotting and visualization.
+- **numpy:** Numerical operations.
+- **scikit-learn:** Machine learning algorithms.
+- **shapely:** Geometric operations.
 
-**Example Output:**
-Images will be saved with filenames in the following format:
+Ensure all dependencies are installed using the provided installation instructions.
 
-```swift
-{prefix}_{image_id}.tif
+## Project Structure
+```css
+satellite-image-classification/
+│
+├── ShapeFile/
+│   └── Region_little.shp
+│
+├── GroundTruthRaster/
+│   └── l8_aa13_northwest_mosaic2.img
+│
+├── ClipedImage/
+│   └── classified_data_colored_little.tif
+│
+├── Sentinel2Images/
+│   └── [Downloaded Sentinel-2 Images]
+│
+├── classify_raster.py
+├── classification.py
+├── image_downloader.py
+├── main.py
+├── README.md
 ```
-Where:
-- ```prefix```: Describes the type of image (```S1```, ```S2```, ```ESA100```, ```ESA200```).
-- ```image_id```: Unique ID of the image.
 
-Example filenames:
-```S1_20200101.tif```
-```S2_20200101.tif```
-```ESA100_20200101.tif```
-```ESA200_20200101.tif```
-
-# Code Walkthrough
-
-### 1. Shapefile Loading (```load_shapefile```)
-- Loads the provided shapefile using **GeoPandas**.
-- Converts the CRS (Coordinate Reference System) to ```EPSG:4326``` for compatibility with Earth Engine.
-- Combines all geometries and returns the AOI as an ```ee.Geometry.Polygon```.
-
-### 2. Get Sentinel-1 Images (```get_sentinel1_images```)
- -Filters the Sentinel-1 image collection by the AOI, date range, and polarization (```VV``` and ```VH```).
-- Selects only the required bands (```VV``` and ```VH```) for the SAR imagery.
-
-### 3. Get Sentinel-2 Images (```get_sentinel2_images```)
-- Filters the Sentinel-2 image collection by the AOI, date range, and cloud coverage (```<30%```).
-- Selects the required optical bands (``B4``, ``B3``, and ``B2`` for ``Red``, ``Green``, and ``Blue``).
-
-### 4. Get ESA WorldCover Images (```get_ESA_WorldCover_v100_image``` and ```get_ESA_WorldCover_v200_image```)
-- Retrieves the first image from the ESA WorldCover v100 and v200 image collections.
-
-### 5. Download Images (```download_images```)
-- Downloads each image in the provided image collection.
-- Supports both exporting to Google Drive and local storage.
-
-### 6. Run Method (```run```)
-- Calls the functions to get images from Sentinel-1, Sentinel-2, and ESA WorldCover collections.
-- Downloads the images for each collection.
+- **ShapeFile/:** Contains shapefiles defining regions of interest.
+- **GroundTruthRaster/:** Stores ground truth raster data for classification.
+- **ClipedImage/:** Outputs from the raster classification process.
+- **Sentinel2Images/:** Directory where downloaded Sentinel-2 images are stored.
+- **Scripts:** Python scripts for downloading, processing, and classification.
+- **README.md:** Project documentation.
 
 
-## Troubleshooting
-
-**Error:** ```ModuleNotFoundError```: Make sure you have installed all required Python packages (```geemap```, ```earthengine-api```, ```geopandas```).\
-**Error: Authentication:** If you face authentication issues, run ```earthengine authenticate``` to authenticate your Earth Engine account.\
-**Large Files:** Sentinel-1 and Sentinel-2 images can be large. Make sure you have enough disk space for the downloaded files.
-
-# Conclusion
-This script provides a simple way to download both Sentinel-1 and Sentinel-2 images from Earth Engine, allowing for easy processing of satellite data. Whether you're working on a small or large area of interest, this code can be easily adapted to suit your needs.
-
+## Acknowledgements
+- [Google Earth Engine](https://earthengine.google.com/) for providing access to extensive geospatial datasets.
+- [Geemap](https://github.com/gee-community/geemap) for simplifying Earth Engine interactions.
+- [Rasterio](https://rasterio.readthedocs.io/en/stable/) for raster data processing.
+- [Scikit-learn](https://scikit-learn.org/stable/) for machine learning algorithms.
