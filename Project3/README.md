@@ -85,6 +85,8 @@ ee.Image("KNTU/LiDARLab/IranLandCover/V1")
 | 11    | Sand            |
 | 12    | Farm_Land       |
 | 13    | Range_Land      |
+
+
 Dataset Citation:
 Ghorbanian, A., Kakooei, M., Amani, M., Mahdavi, S., Mohammadzadeh, A., & Hasanlou, M. (2020). Improved land cover map of Iran using Sentinel imagery within Google Earth Engine and a novel automatic workflow for land cover classification using migrated training samples.
 **ISPRS Journal of Photogrammetry and Remote Sensing**, 167, 276-288.
